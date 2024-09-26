@@ -60,46 +60,15 @@ def insert_documents_to_mongodb(chunked_documents, mongo_uri="mongodb+srv://Tame
 
     documents_to_insert = []
 
-    print("***********************DEBUG***********************")
     for doc in chunked_documents:
-        print(f"Processing Document: {doc.title}")
-        print(f"Content: {doc.content}")
-        print(f"Extension: {doc.extension}")
-        print(f"File Size: {doc.fileSize}")
-        print(f"Labels: {doc.labels}")
-        print(f"Source: {doc.source}")
-        
-        # Prepare chunks
         chunks = []
-        for ch in doc.chunks:
-            print(f"  Chunk ID: {ch.chunk_id}")
-            print(f"  Content: {ch.content}")
-            print(f"  Content Without Overlap: {ch.content_without_overlap}")
-            print(f"  Start Index: {ch.start_i}")
-            print(f"  End Index: {ch.end_i}")
-            
-            chunk_dict = {
-                "content": ch.content,
-                "content_without_overlap": ch.content_without_overlap,
-                "chunk_id": ch.chunk_id,
-                "start_i": ch.start_i,
-                "end_i": ch.end_i
-            }
-            chunks.append(chunk_dict)
+        for chunk in doc.chunks:
+            chunks.append(chunk.to_json())
         
-        document_dict = {
-            "title": doc.title,
-            "content": doc.content,
-            "extension": doc.extension,
-            "fileSize": doc.fileSize,
-            "labels": doc.labels,
-            "source": doc.source,
-            "chunks": chunks
-        }
+        document_obj = Document.to_json(doc)
+        document_obj["chunks"] = chunks
         
-        documents_to_insert.append(document_dict)
-        print("-" * 40)
-    print("------------------------DEBUG------------------------")
+        documents_to_insert.append(document_obj)
 
     if documents_to_insert:
         try:
