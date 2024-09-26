@@ -223,7 +223,7 @@ class VerbaManager:
                 )
             )
             chunked_documents = await chunk_task
-
+            print(chunked_documents)
             embedding_task = asyncio.create_task(
                 self.embedder_manager.vectorize(
                     currentFileConfig.rag_config["Embedder"].selected,
