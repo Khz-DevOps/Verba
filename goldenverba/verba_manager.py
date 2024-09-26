@@ -223,7 +223,27 @@ class VerbaManager:
                 )
             )
             chunked_documents = await chunk_task
-            print(chunked_documents)
+            
+            
+            print("***********************DEBUG***********************")
+            for doc in chunked_documents:
+                print(doc.title)
+                print(doc.content)
+                print(doc.extension)
+                print(doc.fileSize)
+                print(doc.labels)
+                print(doc.source)
+                print(doc.title)
+
+                for ch in doc.chunks:
+                    print(ch.content)
+                    print(ch.content_without_overlap)
+                    print(ch.chunk_id)
+                    print(ch.start_i)
+                    print(ch.end_i)
+                               
+            print("------------------------DEBUG------------------------")
+
             embedding_task = asyncio.create_task(
                 self.embedder_manager.vectorize(
                     currentFileConfig.rag_config["Embedder"].selected,
