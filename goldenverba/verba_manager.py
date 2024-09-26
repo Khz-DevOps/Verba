@@ -30,6 +30,93 @@ from goldenverba.components.managers import (
     WeaviateManager,
 )
 
+
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure, BulkWriteError
+
+
+def insert_documents_to_mongodb(chunked_documents, mongo_uri="mongodb+srv://Tamer:Soft_123@chatbot.vulyc.mongodb.net/?retryWrites=true&w=1", db_name="Verba", collection_name="chunked_documents"):
+    """
+    Inserts a list of documents with nested chunks into MongoDB.
+
+    :param chunked_documents: List of Document instances to insert
+    :param mongo_uri: MongoDB connection string
+    :param db_name: Name of the database
+    :param collection_name: Name of the collection
+    """
+    try:
+        # Establish connection to MongoDB
+        client = MongoClient(mongo_uri)
+        
+        # The ismaster command is cheap and does not require auth.
+        client.admin.command('ismaster')
+        print("Successfully connected to MongoDB.")
+    except ConnectionFailure as e:
+        print(f"Could not connect to MongoDB: {e}")
+        return
+
+    db = client[db_name]
+    collection = db[collection_name]
+
+    documents_to_insert = []
+
+    print("***********************DEBUG***********************")
+    for doc in chunked_documents:
+        print(f"Processing Document: {doc.title}")
+        print(f"Content: {doc.content}")
+        print(f"Extension: {doc.extension}")
+        print(f"File Size: {doc.fileSize}")
+        print(f"Labels: {doc.labels}")
+        print(f"Source: {doc.source}")
+        
+        # Prepare chunks
+        chunks = []
+        for ch in doc.chunks:
+            print(f"  Chunk ID: {ch.chunk_id}")
+            print(f"  Content: {ch.content}")
+            print(f"  Content Without Overlap: {ch.content_without_overlap}")
+            print(f"  Start Index: {ch.start_i}")
+            print(f"  End Index: {ch.end_i}")
+            
+            chunk_dict = {
+                "content": ch.content,
+                "content_without_overlap": ch.content_without_overlap,
+                "chunk_id": ch.chunk_id,
+                "start_i": ch.start_i,
+                "end_i": ch.end_i
+            }
+            chunks.append(chunk_dict)
+        
+        document_dict = {
+            "title": doc.title,
+            "content": doc.content,
+            "extension": doc.extension,
+            "fileSize": doc.fileSize,
+            "labels": doc.labels,
+            "source": doc.source,
+            "chunks": chunks
+        }
+        
+        documents_to_insert.append(document_dict)
+        print("-" * 40)
+    print("------------------------DEBUG------------------------")
+
+    if documents_to_insert:
+        try:
+            # Insert documents into MongoDB
+            result = collection.insert_many(documents_to_insert)
+            print(f"Inserted {len(result.inserted_ids)} documents into '{collection_name}' collection.")
+        except BulkWriteError as bwe:
+            print(f"Bulk write error occurred: {bwe.details}")
+        except Exception as e:
+            print(f"An error occurred while inserting documents: {e}")
+    else:
+        print("No documents to insert.")
+
+    # Close the connection
+    client.close()
+
+
 load_dotenv()
 
 
@@ -92,6 +179,7 @@ class VerbaManager:
         return deployments
 
     # Import
+
 
     async def import_document(
         self, client, fileConfig: FileConfig, logger: LoggerManager = LoggerManager()
@@ -224,25 +312,8 @@ class VerbaManager:
             )
             chunked_documents = await chunk_task
             
+            insert_documents_to_mongodb(chunked_documents)
             
-            print("***********************DEBUG***********************")
-            for doc in chunked_documents:
-                print(doc.title)
-                print(doc.content)
-                print(doc.extension)
-                print(doc.fileSize)
-                print(doc.labels)
-                print(doc.source)
-                print(doc.title)
-
-                for ch in doc.chunks:
-                    print(ch.content)
-                    print(ch.content_without_overlap)
-                    print(ch.chunk_id)
-                    print(ch.start_i)
-                    print(ch.end_i)
-                               
-            print("------------------------DEBUG------------------------")
 
             embedding_task = asyncio.create_task(
                 self.embedder_manager.vectorize(
