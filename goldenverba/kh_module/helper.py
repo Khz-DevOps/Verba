@@ -2,6 +2,8 @@
 import logging
 from typing import Any, Dict, List, Optional
 
+from goldenverba.server.types import DataBatchPayload, FileConfig
+
 from .config import get_mongo_uri
 from .db_handler import MongoDBHandler
 
@@ -69,3 +71,81 @@ class KHHelper:
             except Exception as e:
                 logger.warning(f"Skipping document due to unexpected error: {e}")
         return prepared
+
+    def log_to_db(self, text_log_record: str) -> None:
+        """
+        Logs a string to the database.
+
+        :param text_log_record: String to log.
+        """
+        try:
+            with MongoDBHandler(
+                mongo_uri=self.mongo_uri,
+                db_name=self.db_name,
+                collection_name="logs",
+            ) as handler:
+                handler.insert_document({"text": text_log_record})
+        except Exception as e:
+            logger.error(f"Failed to log to database: {e}")
+            
+            
+    def log_batch_data_payload(self, batch_data: DataBatchPayload) -> None:
+        """
+        Logs a string to the database.
+
+        :param text_log_record: String to log.
+        """
+        
+        doc = {
+            "t":'batch_data_payload',
+            "chunk":batch_data.chunk,
+            "isLastChunk":batch_data.isLastChunk,
+            "total":batch_data.total,
+            "fileID":batch_data.fileID,
+            "order":batch_data.order,
+            "credentials":{
+                "deployment":batch_data.credentials.deployment,
+                "url":batch_data.credentials.url,
+                "key":batch_data.credentials.key,
+            }
+        }
+        try:
+            with MongoDBHandler(
+                mongo_uri=self.mongo_uri,
+                db_name=self.db_name,
+                collection_name="logs",
+            ) as handler:
+                handler.insert_document(doc)
+        except Exception as e:
+            logger.error(f"Failed to log to database: {e}")
+            
+    def log_fileConfig(self, fileConfig: FileConfig) -> None:
+        """
+        Logs a string to the database.
+
+        :param text_log_record: String to log.
+        """
+        
+        doc = {
+            "t":'fileConfig',
+            "fileID":fileConfig.fileID,
+            "filename":fileConfig.filename,
+            "isURL":fileConfig.isURL,
+            "overwrite":fileConfig.overwrite,
+            "extension":fileConfig.extension,
+            "source":fileConfig.source,
+            "content":fileConfig.content,
+            "content":fileConfig.file_size,
+            "content":fileConfig.metadata
+        }
+        try:
+            with MongoDBHandler(
+                mongo_uri=self.mongo_uri,
+                db_name=self.db_name,
+                collection_name="logs",
+            ) as handler:
+                handler.insert_document(doc)
+        except Exception as e:
+            logger.error(f"Failed to log to database: {e}")
+            
+            

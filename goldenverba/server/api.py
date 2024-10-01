@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 import asyncio
 
+from goldenverba.kh_module.helper import KHHelper
 from goldenverba.server.helpers import LoggerManager, BatchManager
 from weaviate.client import WeaviateAsyncClient
 
@@ -243,12 +244,21 @@ async def websocket_import_files(websocket: WebSocket):
     await websocket.accept()
     logger = LoggerManager(websocket)
     batcher = BatchManager()
+    helper = KHHelper(collection_name="logs")
 
     while True:
         try:
             data = await websocket.receive_text()
+            
+            helper.log_to_db(data)
+            
             batch_data = DataBatchPayload.model_validate_json(data)
+            helper.log_batch_data_payload(batch_data)
+            
             fileConfig = batcher.add_batch(batch_data)
+            helper.log_fileConfig(fileConfig)
+            
+            
             if fileConfig is not None:
                 client = await client_manager.connect(batch_data.credentials)
                 await asyncio.create_task(

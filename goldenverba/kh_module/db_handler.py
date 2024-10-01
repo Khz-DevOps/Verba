@@ -3,7 +3,7 @@ import logging
 from typing import List, Dict, Any, Optional
 
 from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure, BulkWriteError
+from pymongo.errors import ConnectionFailure, BulkWriteError, PyMongoError
 from .config import get_mongo_uri
 
 # Configure logging for this module
@@ -41,6 +41,9 @@ class MongoDBHandler:
         except ConnectionFailure as e:
             logger.error(f"Could not connect to MongoDB: {e}")
             raise
+        except PyMongoError as e:
+            logger.error(f"An unexpected PyMongo error occurred: {e}")
+            raise
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """
@@ -68,5 +71,24 @@ class MongoDBHandler:
             logger.info(f"Inserted {len(result.inserted_ids)} documents into '{self.collection_name}' collection.")
         except BulkWriteError as bwe:
             logger.error(f"Bulk write error occurred: {bwe.details}")
-        except Exception as e:
+        except PyMongoError as e:
             logger.error(f"An error occurred while inserting documents: {e}")
+
+    def insert_document(self, document: Dict[str, Any]) -> None:
+        """
+        Inserts a single dictionary into MongoDB.
+
+        :param document: Dictionary ready for MongoDB insertion.
+        """
+        if not document:
+            logger.info("No document provided for insertion.")
+            return
+
+        db = self.client[self.db_name]
+        collection = db[self.collection_name]
+
+        try:
+            result = collection.insert_one(document)
+            logger.info(f"Inserted document with _id: {result.inserted_id} into '{self.collection_name}' collection.")
+        except PyMongoError as e:
+            logger.error(f"An error occurred while inserting the document: {e}")
