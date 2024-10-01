@@ -10,6 +10,7 @@ import asyncio
 
 from copy import deepcopy
 
+from goldenverba.kh_module.helper import KHHelper
 from goldenverba.server.helpers import LoggerManager
 from weaviate.client import WeaviateAsyncClient
 
@@ -31,59 +32,6 @@ from goldenverba.components.managers import (
 )
 
 
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure, BulkWriteError
-
-
-def insert_documents_to_mongodb(chunked_documents, mongo_uri="mongodb+srv://Tamer:Soft_123@chatbot.vulyc.mongodb.net/?retryWrites=true&w=1", db_name="Verba", collection_name="chunked_documents"):
-    """
-    Inserts a list of documents with nested chunks into MongoDB.
-
-    :param chunked_documents: List of Document instances to insert
-    :param mongo_uri: MongoDB connection string
-    :param db_name: Name of the database
-    :param collection_name: Name of the collection
-    """
-    try:
-        # Establish connection to MongoDB
-        client = MongoClient(mongo_uri)
-        
-        # The ismaster command is cheap and does not require auth.
-        client.admin.command('ismaster')
-        print("Successfully connected to MongoDB.")
-    except ConnectionFailure as e:
-        print(f"Could not connect to MongoDB: {e}")
-        return
-
-    db = client[db_name]
-    collection = db[collection_name]
-
-    documents_to_insert = []
-
-    for doc in chunked_documents:
-        chunks = []
-        for chunk in doc.chunks:
-            chunks.append(chunk.to_json())
-        
-        document_obj = Document.to_json(doc)
-        document_obj["chunks"] = chunks
-        
-        documents_to_insert.append(document_obj)
-
-    if documents_to_insert:
-        try:
-            # Insert documents into MongoDB
-            result = collection.insert_many(documents_to_insert)
-            print(f"Inserted {len(result.inserted_ids)} documents into '{collection_name}' collection.")
-        except BulkWriteError as bwe:
-            print(f"Bulk write error occurred: {bwe.details}")
-        except Exception as e:
-            print(f"An error occurred while inserting documents: {e}")
-    else:
-        print("No documents to insert.")
-
-    # Close the connection
-    client.close()
 
 
 load_dotenv()
@@ -280,9 +228,11 @@ class VerbaManager:
                 )
             )
             chunked_documents = await chunk_task
-            
-            insert_documents_to_mongodb(chunked_documents)
-            
+           
+            helper = KHHelper()
+
+            # Insert documents into MongoDB
+            helper.insert_documents_to_mongodb(chunked_documents) 
 
             embedding_task = asyncio.create_task(
                 self.embedder_manager.vectorize(
