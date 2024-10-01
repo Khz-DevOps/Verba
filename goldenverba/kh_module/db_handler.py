@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, BulkWriteError
-from config import get_mongo_uri
+from .config import get_mongo_uri
 
 # Configure logging for this module
 logger = logging.getLogger(__name__)

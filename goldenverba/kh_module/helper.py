@@ -1,10 +1,12 @@
 # helper.py
 import logging
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from goldenverba.components.document import Document  # Ensure this path is correct
-from db_handler import MongoDBHandler
-from config import get_mongo_uri
+from .config import get_mongo_uri
+from .db_handler import MongoDBHandler
+
+from goldenverba.components.document import \
+    Document  # Ensure this path is correct
 
 # Configure logging for this module
 logger = logging.getLogger(__name__)
