@@ -95,20 +95,26 @@ class KHHelper:
 
         :param text_log_record: String to log.
         """
-        
-        doc = {
-            "t":'batch_data_payload',
-            "chunk":batch_data.chunk,
-            "isLastChunk":batch_data.isLastChunk,
-            "total":batch_data.total,
-            "fileID":batch_data.fileID,
-            "order":batch_data.order,
-            "credentials":{
-                "deployment":batch_data.credentials.deployment,
-                "url":batch_data.credentials.url,
-                "key":batch_data.credentials.key,
+        if (batch_data is not None):
+            doc = {
+                "t":'batch_data_payload',
+                "chunk":batch_data.chunk,
+                "isLastChunk":batch_data.isLastChunk,
+                "total":batch_data.total,
+                "fileID":batch_data.fileID,
+                "order":batch_data.order,
+                "credentials":{
+                    "deployment":batch_data.credentials.deployment,
+                    "url":batch_data.credentials.url,
+                    "key":batch_data.credentials.key,
+                }
             }
-        }
+        else:
+            doc = {
+                "t":'batch_data_payload',
+                "batch_data_payload":"None"
+            }
+            
         try:
             with MongoDBHandler(
                 mongo_uri=self.mongo_uri,
@@ -125,19 +131,25 @@ class KHHelper:
 
         :param text_log_record: String to log.
         """
-        
-        doc = {
-            "t":'fileConfig',
-            "fileID":fileConfig.fileID,
-            "filename":fileConfig.filename,
-            "isURL":fileConfig.isURL,
-            "overwrite":fileConfig.overwrite,
-            "extension":fileConfig.extension,
-            "source":fileConfig.source,
-            "content":fileConfig.content,
-            "content":fileConfig.file_size,
-            "content":fileConfig.metadata
-        }
+        if (fileConfig is not None):
+            doc = {
+                "t":'fileConfig',
+                "fileID":fileConfig.fileID,
+                "filename":fileConfig.filename,
+                "isURL":fileConfig.isURL,
+                "overwrite":fileConfig.overwrite,
+                "extension":fileConfig.extension,
+                "source":fileConfig.source,
+                "content":fileConfig.content,
+                "file_size":fileConfig.file_size,
+                "metadata":fileConfig.metadata
+            }
+        else:
+            doc = {
+                "t":'fileConfig',
+                "fileConfig":"None"
+            }
+
         try:
             with MongoDBHandler(
                 mongo_uri=self.mongo_uri,
