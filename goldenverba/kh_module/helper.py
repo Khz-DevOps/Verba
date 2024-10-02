@@ -46,7 +46,7 @@ class KHHelper:
                 return
 
             # Convert chunks to GPTTopic objects
-            all_chunks = [chunk.to_json() for doc in chunked_documents for chunk in doc.chunks]
+            all_chunks = [(doc.title, chunk.to_json()) for doc in chunked_documents for chunk in doc.chunks]
             gpttopics = self.convert_chunks_to_gpttopics(all_chunks)
             logger.info(f"Converted {len(gpttopics)} chunks to GPTTopic objects.")
 
@@ -73,7 +73,7 @@ class KHHelper:
             logger.error(f"Failed to insert documents: {e}")
 
 
-    def convert_chunk_to_gpttopic(self, chunk: Dict[str, Any]) -> Dict[str, Any]:
+    def convert_chunk_to_gpttopic(self,doc_id: str, chunk: Dict[str, Any]) -> Dict[str, Any]:
         gpttopic = dict()
                     
         gpttopic['intent'] = ""
@@ -84,9 +84,10 @@ class KHHelper:
         gpttopic['promptId'] = 0
         gpttopic['test'] = []
         gpttopic['color'] = ""
+        gpttopic['doc_id'] = doc_id
         gpttopic['chunk_id'] = chunk['chunk_id']
         gpttopic['doc_uuid'] = chunk['doc_uuid']
-        gpttopic['title'] = chunk['title']
+        gpttopic['chunk_title'] = chunk['title']
         gpttopic['pca'] = chunk['pca']
         gpttopic['start_i'] = chunk['start_i']
         gpttopic['end_i'] = chunk['end_i']
@@ -95,7 +96,7 @@ class KHHelper:
         
         return gpttopic
     
-    def convert_chunks_to_gpttopics(self, chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def convert_chunks_to_gpttopics(self, chunks: List[tuple[str,Dict[str, Any]]]) -> List[Dict[str, Any]]:
         """
         Converts a list of chunk dictionaries into a list of GPTTopic objects.
 
@@ -103,10 +104,10 @@ class KHHelper:
         :return: List of GPTTopic instances.
         """
         gpttopics = []
-        for chunk in chunks:
+        for title, chunk in chunks:
             try:
                 # Create GPTTopic instance by unpacking chunk dict
-                gpttopic = self.convert_chunk_to_gpttopic(chunk)
+                gpttopic = self.convert_chunk_to_gpttopic(title, chunk)
                 gpttopics.append(gpttopic)
             except TypeError as te:
                 logger.warning(f"Type error while converting chunk to GPTTopic: {te}. Chunk data: {chunk}")
