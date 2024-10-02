@@ -2,6 +2,7 @@
 import logging
 from typing import Any, Dict, List, Optional
 
+from goldenverba.kh_module.models import GPTTopic
 from goldenverba.server.types import DataBatchPayload, FileConfig
 
 from .config import get_mongo_uri
@@ -34,6 +35,7 @@ class KHHelper:
     def insert_documents_to_mongodb(self, chunked_documents: List[Document]) -> None:
         """
         Inserts a list of documents with nested chunks into MongoDB using an internal MongoDBHandler.
+        Also converts chunks to GPTTopic objects for logging or further processing.
 
         :param chunked_documents: List of Document instances to insert.
         """
@@ -43,7 +45,16 @@ class KHHelper:
                 logger.info("No valid documents to insert after preparation.")
                 return
 
-            # Instantiate MongoDBHandler internally
+            # Convert chunks to GPTTopic objects
+            all_chunks = [chunk.to_json() for doc in chunked_documents for chunk in doc.chunks]
+            gpttopics = self.convert_chunks_to_gpttopics(all_chunks)
+            logger.info(f"Converted {len(gpttopics)} chunks to GPTTopic objects.")
+
+            # Example: Log GPTTopics or perform additional operations
+            for gpttopic in gpttopics:
+                logger.debug(f"GPTTopic: {gpttopic}")
+
+            # Instantiate MongoDBHandler internally and insert documents
             with MongoDBHandler(
                 mongo_uri=self.mongo_uri,
                 db_name=self.db_name,
@@ -53,6 +64,26 @@ class KHHelper:
         except Exception as e:
             logger.error(f"Failed to insert documents: {e}")
 
+
+    def convert_chunks_to_gpttopics(self, chunks: List[Dict[str, Any]]) -> List[GPTTopic]:
+        """
+        Converts a list of chunk dictionaries into a list of GPTTopic objects.
+
+        :param chunks: List of dictionaries representing chunks.
+        :return: List of GPTTopic instances.
+        """
+        gpttopics = []
+        for chunk in chunks:
+            try:
+                # Create GPTTopic instance by unpacking chunk dict
+                gpttopic = GPTTopic(**chunk)
+                gpttopics.append(gpttopic)
+            except TypeError as te:
+                logger.warning(f"Type error while converting chunk to GPTTopic: {te}. Chunk data: {chunk}")
+            except Exception as e:
+                logger.warning(f"Unexpected error while converting chunk to GPTTopic: {e}. Chunk data: {chunk}")
+        return gpttopics
+    
     def _prepare_documents(self, chunked_documents: List[Document]) -> List[Dict[str, Any]]:
         """
         Converts Document instances to JSON-compatible dictionaries.
