@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Any
 
 class GPTTopic(BaseModel):
-    _id: int = Field(..., alias="_id")
+    id: int = Field(..., alias="_id")
     intent: str
     context: str
     examples: List[str]
