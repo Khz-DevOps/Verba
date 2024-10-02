@@ -58,6 +58,14 @@ class KHHelper:
             with MongoDBHandler(
                 mongo_uri=self.mongo_uri,
                 db_name=self.db_name,
+                collection_name="gpttopics"
+            ) as handler:
+                handler.insert_documents(gpttopics)
+                
+            # Instantiate MongoDBHandler internally and insert documents
+            with MongoDBHandler(
+                mongo_uri=self.mongo_uri,
+                db_name=self.db_name,
                 collection_name=self.collection_name
             ) as handler:
                 handler.insert_documents(prepared_documents)
