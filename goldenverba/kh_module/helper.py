@@ -73,7 +73,29 @@ class KHHelper:
             logger.error(f"Failed to insert documents: {e}")
 
 
-    def convert_chunks_to_gpttopics(self, chunks: List[Dict[str, Any]]) -> List[GPTTopic]:
+    def convert_chunk_to_gpttopic(self, chunk: Dict[str, Any]) -> Dict[str, Any]:
+        gpttopic = dict()
+                    
+        gpttopic['intent'] = ""
+        gpttopic['context'] = chunk['content']
+        gpttopic['examples'] = []
+        gpttopic['instructions'] = []
+        gpttopic['promptExamples'] = []
+        gpttopic['promptId'] = 0
+        gpttopic['test'] = []
+        gpttopic['color'] = ""
+        gpttopic['chunk_id'] = chunk['chunk_id']
+        gpttopic['doc_uuid'] = chunk['doc_uuid']
+        gpttopic['title'] = chunk['title']
+        gpttopic['pca'] = chunk['pca']
+        gpttopic['start_i'] = chunk['start_i']
+        gpttopic['end_i'] = chunk['end_i']
+        gpttopic['content_without_overlap'] = chunk['content_without_overlap']
+        gpttopic['labels'] = chunk['labels']
+        
+        return gpttopic
+    
+    def convert_chunks_to_gpttopics(self, chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Converts a list of chunk dictionaries into a list of GPTTopic objects.
 
@@ -84,7 +106,7 @@ class KHHelper:
         for chunk in chunks:
             try:
                 # Create GPTTopic instance by unpacking chunk dict
-                gpttopic = GPTTopic(**chunk)
+                gpttopic = self.convert_chunk_to_gpttopic(chunk)
                 gpttopics.append(gpttopic)
             except TypeError as te:
                 logger.warning(f"Type error while converting chunk to GPTTopic: {te}. Chunk data: {chunk}")
