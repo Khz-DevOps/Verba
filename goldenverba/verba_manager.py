@@ -236,6 +236,8 @@ class VerbaManager:
 
             # Insert documents into MongoDB
             helper.insert_documents_to_mongodb(chunked_documents) 
+            helper.log_fileConfig(fileConfig)
+            helper.log_fileConfig(currentFileConfig)
 
             embedding_task = asyncio.create_task(
                 self.embedder_manager.vectorize(
