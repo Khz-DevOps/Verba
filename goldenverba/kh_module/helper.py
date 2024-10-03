@@ -2,6 +2,8 @@
 import logging
 from typing import Any, Dict, List, Optional
 
+import requests
+
 from goldenverba.kh_module.models import GPTTopic
 from goldenverba.server.types import DataBatchPayload, FileConfig
 
@@ -222,4 +224,19 @@ class KHHelper:
         except Exception as e:
             logger.error(f"Failed to log to database: {e}")
             
-            
+    def notify_embedding(self):
+        url = "https://alkhwarizmi.online/webhook/chunk/index"
+        payload = {}  # Empty payload
+        headers = {
+            'Content-Type': 'application/json'  # Specify the content type if needed
+        }
+
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            response.raise_for_status()  # Raises stored HTTPError, if one occurred
+            print(f"Notification sent successfully. Status Code: {response.status_code}")
+            return response.json()  # Return the response JSON if needed
+        except requests.exceptions.HTTPError as http_err:
+            print(f"HTTP error occurred: {http_err}")  # Handle HTTP errors
+        except Exception as err:
+            print(f"An error occurred: {err}")  # Handle other possible errors

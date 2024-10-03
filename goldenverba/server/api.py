@@ -244,19 +244,19 @@ async def websocket_import_files(websocket: WebSocket):
     await websocket.accept()
     logger = LoggerManager(websocket)
     batcher = BatchManager()
-    helper = KHHelper(collection_name="logs")
+    # helper = KHHelper(collection_name="logs")
 
     while True:
         try:
             data = await websocket.receive_text()
             
-            helper.log_to_db(data)
+            # helper.log_to_db(data)
             
             batch_data = DataBatchPayload.model_validate_json(data)
-            helper.log_batch_data_payload(batch_data)
+            # helper.log_batch_data_payload(batch_data)
             
             fileConfig = batcher.add_batch(batch_data)
-            helper.log_fileConfig(fileConfig)
+            # helper.log_fileConfig(fileConfig)
             
             
             if fileConfig is not None:

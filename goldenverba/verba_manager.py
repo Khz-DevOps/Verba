@@ -140,6 +140,9 @@ class VerbaManager:
                 1 for result in results if not isinstance(result, Exception)
             )
 
+            kh_helper = KHHelper()
+            kh_helper.notify_embedding()
+            
             if successful_tasks > 1:
                 await logger.send_report(
                     fileConfig.fileID,

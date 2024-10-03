@@ -26,6 +26,7 @@ from goldenverba.components.interfaces import (
     Retriever,
     Generator,
 )
+from goldenverba.kh_module.helper import KHHelper
 from goldenverba.server.helpers import LoggerManager
 from goldenverba.server.types import FileConfig, FileStatus
 
@@ -448,7 +449,8 @@ class WeaviateManager:
 
             if not await document_collection.data.exists(uuid):
                 return
-
+            kh_helper = KHHelper()
+            kh_helper.log_to_db(uuid)
             document_obj = await document_collection.query.fetch_object_by_id(uuid)
             embedding_config = json.loads(document_obj.properties.get("meta"))[
                 "Embedder"
