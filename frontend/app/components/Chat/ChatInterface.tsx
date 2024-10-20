@@ -275,7 +275,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     ]);
 
     addStatusMessage(
-      "Received " + Object.entries(data.documents).length + " documents",
+      "KHKHKH Received " + Object.entries(data.documents).length + " documents",
       "SUCCESS"
     );
 
