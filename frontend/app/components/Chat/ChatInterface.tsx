@@ -266,11 +266,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     isFetching.current = false;
     setFetchingStatus("DONE");
   };
+  // { type: "retrieval", content: data.documents, context: data.context },
 
   const handleSuccessResponse = (data: QueryPayload, sendInput: string) => {
     setMessages((prev) => [
       ...prev,
-      { type: "retrieval", content: data.documents, context: data.context },
+      { type: "retrieval", content: data.documents, context: "السلام عليكم" },
     ]);
 
     addStatusMessage(
