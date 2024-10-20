@@ -240,7 +240,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setMessages((prev) => [...prev, { type: "user", content: sendInput }]);
 
     try {
-      addStatusMessage("Sending query...", "INFO");
+      addStatusMessage("KKKK Sending query...", "INFO");
       const data = await sendUserQuery(
         sendInput,
         RAGConfig,
